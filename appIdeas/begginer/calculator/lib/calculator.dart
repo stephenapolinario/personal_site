@@ -1,4 +1,5 @@
 import 'package:calculator/theme/custom_colors.dart';
+import 'package:calculator/utils/scale_size.dart';
 import 'package:flutter/material.dart';
 
 enum ColorButton {
@@ -40,6 +41,9 @@ class _CalculatorState extends State<Calculator> {
     String buttonText,
     OperationType operationType,
   ) {
+    if (operationType != OperationType.number && textToDisplay == '') {
+      return;
+    }
     switch (operationType) {
       case OperationType.clear:
         textToDisplay = '';
@@ -47,6 +51,7 @@ class _CalculatorState extends State<Calculator> {
         secondNum = 0;
         result = '';
         lastResult = '';
+        lastOperation = OperationType.equal;
         break;
       case OperationType.number:
         result = double.parse(result + buttonText).toString();
@@ -108,10 +113,18 @@ class _CalculatorState extends State<Calculator> {
 
   @override
   Widget build(BuildContext context) {
+    double currentWidth = MediaQuery.of(context).size.width;
+    double currentHeight = MediaQuery.of(context).size.height;
+    double widthContainer = currentWidth /
+        (currentWidth >= 1400
+            ? 5.6
+            : currentWidth >= 800
+                ? 4
+                : 2);
     return Center(
       child: Container(
-        width: MediaQuery.of(context).size.width / 5,
-        height: MediaQuery.of(context).size.height / 1.5,
+        width: widthContainer,
+        height: currentHeight / (currentHeight < 900 ? 1.6 : 1.9),
         color: CustomColors.calculatorBackground(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -245,17 +258,20 @@ class _CalculatorState extends State<Calculator> {
     );
   }
 
-  Widget buildButton(
-      {String buttonText = '',
-      IconData? buttonIcon,
-      double size = 1,
-      OperationType operationType = OperationType.number,
-      ColorButton color = ColorButton.normal}) {
+  Widget buildButton({
+    String buttonText = '',
+    IconData? buttonIcon,
+    double size = 1,
+    OperationType operationType = OperationType.number,
+    ColorButton color = ColorButton.normal,
+  }) {
+    double currentWidth = MediaQuery.of(context).size.width;
+    double currentHeight = MediaQuery.of(context).size.height;
     return Expanded(
       flex: size.toInt(),
       child: SizedBox(
-        height: 70,
-        width: 10,
+        height: currentHeight * 0.07,
+        width: currentWidth * 0.005,
         child: Padding(
           padding: const EdgeInsets.all(2),
           child: ElevatedButton(
@@ -264,6 +280,7 @@ class _CalculatorState extends State<Calculator> {
               operationType,
             ),
             style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.zero,
               backgroundColor: color == ColorButton.especial
                   ? CustomColors.especialButtonBackground(context)
                   : operationType == OperationType.number
@@ -274,12 +291,21 @@ class _CalculatorState extends State<Calculator> {
             child: buttonIcon == null
                 ? Text(
                     buttonText,
+                    textAlign: TextAlign.center,
+                    textScaler: TextScaler.linear(
+                      ScaleSize.textScaleFactor(
+                        context,
+                        maxTextScaleFactor: 1.6,
+                      ),
+                    ),
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   )
-                : Icon(buttonIcon),
+                : Icon(
+                    buttonIcon,
+                  ),
           ),
         ),
       ),
